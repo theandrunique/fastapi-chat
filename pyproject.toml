@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "fastapi-chat"
+name = "app"
 version = "0.1.0"
 description = "description"
 authors = ["theandrunique <theandrusyper@gmail.com>"]
