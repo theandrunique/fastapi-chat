@@ -1,6 +1,6 @@
 from enum import Enum
 from sqlalchemy.orm import Mapped, mapped_column
-from core import Base
+from db import Base
 
 
 class ChatType(Enum):
