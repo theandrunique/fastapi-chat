@@ -8,7 +8,7 @@ class ChatType(Enum):
     GROUP = "group"
 
 
-class Chats(Base):
+class ChatInDB(Base):
     __tablename__ = "chats"
 
     id: Mapped[int] = mapped_column(primary_key=True)
