@@ -13,7 +13,8 @@ sqlalchemy = "^2.0.23"
 asyncpg = "^0.29.0"
 pydantic-settings = "^2.1.0"
 alembic = "^1.12.1"
-pyjwt = "^2.8.0"
+pyjwt = {extras = ["crypto"], version = "^2.8.0"}
+bcrypt = "^4.1.1"
 
 
 [build-system]
