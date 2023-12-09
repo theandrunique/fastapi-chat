@@ -9,4 +9,4 @@ class UserInDB(Base):
     # custom_id: Mapped[str] = mapped_column(unique=True)
     login: Mapped[str] = mapped_column(unique=True)
     password: Mapped[bytes]
-    active: Mapped[bool]
+    active: Mapped[bool] = mapped_column(default=True)

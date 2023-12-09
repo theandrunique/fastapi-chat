@@ -7,7 +7,6 @@ from fastapi import (
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from . import utils
 from .schemas import (
     UserRegSchemaIn,
     UserRegSchemaOut,
@@ -25,7 +24,7 @@ router = APIRouter(prefix="/auth")
 @router.post("/login/", response_model=TokenSchema)
 async def auth_user(
     user_data: UserSchema,
-    session: AsyncSession = Depends(db_helper.get_scoped_session),
+    session: AsyncSession = Depends(db_helper.session_dependency),
 ):
     user_from_db = await crud.get_user_by_login(
         session=session,
@@ -37,7 +36,7 @@ async def auth_user(
             detail="user not found",
         )
 
-    if utils.validate_password(
+    if not security.validate_password(
         user_data.password,
         hashed_password=user_from_db.password,
     ):
@@ -46,25 +45,22 @@ async def auth_user(
             detail="incorrect login or password",
         )
 
-    jwt_payload = {
-        "sub": user_from_db.id,
-        "login": user_from_db.login,
-    }
-    token = security.create_access_token(subject=jwt_payload)
+    token = security.create_access_token(
+        subject={
+            "user_id": user_from_db.id,
+            "login": user_from_db.login,
+        }
+    )
     return TokenSchema(
         access_token=token,
         token_type="Bearer",
     )
 
 
-@router.post(
-    "/register/",
-    status_code=status.HTTP_201_CREATED,
-    response_model=UserRegSchemaOut,
-)
+@router.post("/register/", status_code=status.HTTP_201_CREATED, response_model=UserRegSchemaOut)
 async def register_user(
     user_data: UserRegSchemaIn,
-    session: AsyncSession = Depends(db_helper.get_scoped_session),
+    session: AsyncSession = Depends(db_helper.session_dependency),
 ):
     try:
         new_user = await crud.create_user(
@@ -72,7 +68,7 @@ async def register_user(
             user_data=user_data,
         )
     except IntegrityError:
-        return HTTPException(
+        raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="user with this login already exists",
         )

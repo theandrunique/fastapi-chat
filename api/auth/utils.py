@@ -6,25 +6,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.security import verify_access_token
 from models.user import UserInDB
-from . import crud
+from .crud import get_user_by_id
 from db import db_helper
-
-
-def hash_password(password: str) -> bytes:
-    return bcrypt.hashpw(
-        password=password.encode(),
-        salt=bcrypt.gensalt(),
-    )
-
-
-def validate_password(
-    password: str,
-    hashed_password: bytes,
-) -> bool:
-    return bcrypt.checkpw(
-        password=password.encode(),
-        hashed_password=hashed_password,
-    )
 
 
 oauth2_scheme = OAuth2PasswordBearer(
@@ -57,7 +40,7 @@ async def get_current_auth_user(
 
     user_id: str | None = payload.get("sub")
 
-    if user := await crud.get_user_by_id(
+    if user := await get_user_by_id(
         session=session,
         id=user_id,
     ):

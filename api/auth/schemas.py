@@ -8,7 +8,7 @@ class TokenSchema(BaseModel):
 
 class UserSchema(BaseModel):
     login: str
-    password: bytes
+    password: str
     # email: EmailStr
     # active: bool
 
@@ -19,5 +19,5 @@ class UserRegSchemaIn(BaseModel):
 
 
 class UserRegSchemaOut(BaseModel):
-    id: str
+    id: int
     login: str

@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     DB_NAME: str
     db_echo: str
     SECRET_KEY: str
-    ACCESS_TOKEN_EXPIRE_MINUTES: str
+    ACCESS_TOKEN_EXPIRE_MINUTES: int
 
     @property
     def DATABASE_URI(self):
