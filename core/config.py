@@ -10,6 +10,8 @@ class Settings(BaseSettings):
     db_echo: str
     SECRET_KEY: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int
+    
+    
 
     @property
     def DATABASE_URI(self):
@@ -21,6 +23,10 @@ class Settings(BaseSettings):
             return True
         else:
             return False
+
+    @property
+    def MONGODB_URI(self):
+        return "mongodb://localhost:27017"
 
     model_config = SettingsConfigDict(env_file=".env")
 
