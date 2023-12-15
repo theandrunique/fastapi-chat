@@ -1,5 +1,8 @@
 from enum import Enum
+import uuid
+
 from sqlalchemy.orm import Mapped, mapped_column
+
 from db import Base
 
 
@@ -15,3 +18,4 @@ class ChatInDB(Base):
     title: Mapped[str]
     creator_id: Mapped[int]
     type: Mapped[ChatType]
+    chat_id_in_mongodb: Mapped[str] = mapped_column(unique=True, index=True, default=str(uuid.uuid4()))
