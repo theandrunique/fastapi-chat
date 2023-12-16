@@ -10,7 +10,7 @@ class ChatInMongoDB:
     def __init__(
         self,
         user_id: int,
-        chat_id: str = None,
+        chat_id: str,
     ) -> None:
         """initialize connection to mongodb, create new chat collection if needed"""
 
@@ -22,24 +22,14 @@ class ChatInMongoDB:
         self.chat_id = chat_id
 
     def send_message(self, message):
-        last_message = next(
-            self.collection.find({"message": {"$exists": True}})
-            .sort([("message_id", -1)])
-            .limit(1),
-            None,
-        )
-        next_message_id = 1
-        if last_message:
-            next_message_id = last_message.get("message_id") + 1
-
+        count_messages = self.get_count_chat_messages()
         current_time = time.time()
-        self.collection.insert_one({
+        return self.collection.insert_one({
                 "from_id": self.user_id,
                 "message": message,
                 "time": current_time,
-                "message_id": next_message_id,
+                "message_id": count_messages + 1,
         })
-        return next_message_id
 
     def get_count_chat_messages(self):
         last_message = next(

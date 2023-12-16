@@ -38,11 +38,11 @@ async def get_current_auth_user(
 ) -> UserInDB:
     """checking that user exists"""
 
-    user_id: str | None = payload.get("sub")
+    sub: str | None = payload.get("sub")
 
     if user := await get_user_by_id(
         session=session,
-        id=user_id,
+        id=sub.get("user_id"),
     ):
         return user
     raise HTTPException(
