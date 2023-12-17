@@ -80,3 +80,30 @@ async def send_message(
     )
 
     return new_message
+
+
+@router.get("/get_chat_messages")
+async def get_chat_messages(
+    query_info: GetChatMessages,
+    session: AsyncSession = Depends(db_helper.session_dependency),
+    current_user: UserInDB = Depends(auth_utils.get_current_active_auth_user),
+):
+    await utils.get_chat_user_association(
+        chat_id=query_info.chat_id,
+        user_id=current_user.id,
+        session=session,
+    )
+
+    chat_in_mongodb = ChatInMongoDB(
+        user_id=current_user.id,
+        chat_id=query_info.chat_id,
+    )
+    messages = chat_in_mongodb.get_chat_messages(
+        count=query_info.count,
+        offset=query_info.offset,
+    )
+    return {
+        "total_messages": chat_in_mongodb.get_count_chat_messages(),
+        "chat_id": query_info.chat_id,
+        "messages": messages,
+    }
