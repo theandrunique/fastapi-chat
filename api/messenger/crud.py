@@ -2,6 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, Result
 
 from models import ChatUserAssociation, ChatInDB
+from models.user import UserInDB
 
 
 async def add_user_to_chat(
@@ -29,3 +30,18 @@ async def get_chat_by_id(
     chat_from_db = result.one_or_none()
 
     return chat_from_db[0]
+
+
+async def get_users_of_chat(
+    session: AsyncSession,
+    chat_id,
+) -> list[UserInDB]:
+    stmt = (
+        select(ChatUserAssociation, UserInDB)
+        .join(UserInDB)
+        .where(ChatUserAssociation.chat_id == chat_id)
+    )
+
+    result: Result = await session.execute(stmt)
+
+    return [user for _, user in result]

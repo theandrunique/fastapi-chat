@@ -2,12 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 
-from models import ChatInDB, UserInDB, ChatType
+from models import ChatInDB, UserInDB, ChatType, ChatUserAssociation
 from api.auth import utils as auth_utils
 from db import db_helper
 from mongodb import ChatInMongoDB
 
-from .schemas import ChatSchema, CreateChatSchema, GetChatMessages
+from .schemas import ChatInfoSchemaOut, ChatSchema, CreateChatSchema, GetChatMessages
 from . import utils
 from . import crud
 
@@ -25,7 +25,15 @@ async def create_chat(
         creator_id=current_user.id,
         type=ChatType.GROUP,
     )
+
     session.add(new_chat_in_db)
+    await session.commit()
+
+    chat_user_association = ChatUserAssociation(
+        user_id=current_user.id, chat_id=new_chat_in_db.id
+    )
+
+    session.add(chat_user_association)
     await session.commit()
 
     return {
@@ -55,7 +63,7 @@ async def add_user_to_chat(
     except IntegrityError:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"user {user_id} not found",
+            detail=f"user {user_id} not found or already exists in chat",
         )
     return {"status": "success"}
 
@@ -106,4 +114,29 @@ async def get_chat_messages(
         "total_messages": chat_in_mongodb.get_count_chat_messages(),
         "chat_id": query_info.chat_id,
         "messages": messages,
+    }
+
+
+@router.get("/get_chat_info", response_model=ChatInfoSchemaOut)
+async def get_chat_info(
+    chat_info: ChatSchema,
+    session: AsyncSession = Depends(db_helper.session_dependency),
+    current_user: UserInDB = Depends(auth_utils.get_current_active_auth_user),
+):
+    chat_in_mongodb = ChatInMongoDB(
+        user_id=current_user.id,
+        chat_id=chat_info.chat_id,
+    )
+    users_of_chat = await crud.get_users_of_chat(
+        session=session,
+        chat_id=chat_info.chat_id,
+    )
+    chat_in_db = await crud.get_chat_by_id(
+        session=session,
+        chat_id=chat_info.chat_id,
+    )
+
+    return {
+        "chat_participants": users_of_chat,
+        "chat_info": chat_in_db,
     }
