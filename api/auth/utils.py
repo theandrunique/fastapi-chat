@@ -1,4 +1,3 @@
-import bcrypt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jwt import InvalidTokenError
@@ -27,7 +26,8 @@ async def validate_access_token(
     except InvalidTokenError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"invalid token",
+            detail=f"Invalid token",
+            headers={"WWW-Authenticate": "Bearer"},
         )
     return payload
 
@@ -47,8 +47,10 @@ async def get_current_auth_user(
         return user
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="invalid token (user not found)",
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
     )
+
 
 
 async def get_current_active_auth_user(

@@ -1,17 +1,32 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    status,
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 
-from models import ChatInDB, UserInDB, ChatType, ChatUserAssociation
+from models import (
+    ChatInDB,
+    UserInDB,
+    ChatType,
+    ChatUserAssociation,
+)
 from api.auth import utils as auth_utils
 from db import db_helper
 from mongodb import ChatInMongoDB
 
-from .schemas import ChatInfoSchemaOut, ChatSchema, CreateChatSchema, GetChatMessages
+from .schemas import (
+    ChatInfoSchemaOut,
+    ChatSchema,
+    CreateChatSchema,
+    GetChatMessages,
+)
 from . import utils
 from . import crud
 
-router = APIRouter(prefix="/messenger")
+router = APIRouter(prefix="/chat")
 
 
 @router.post("/create_chat")
@@ -137,6 +152,7 @@ async def get_chat_info(
     )
 
     return {
+        "total_messages": chat_in_mongodb.get_count_chat_messages(),
         "chat_participants": users_of_chat,
         "chat_info": chat_in_db,
     }
