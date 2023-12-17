@@ -6,4 +6,10 @@ class CreateChatSchema(BaseModel):
 
 
 class ChatSchema(BaseModel):
-    chat_id: str
+    chat_id: int
+
+
+class GetChatMessages(BaseModel):
+    count: int = 20
+    offset: int = 0
+    chat_id: int

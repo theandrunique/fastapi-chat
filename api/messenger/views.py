@@ -7,7 +7,7 @@ from api.auth import utils as auth_utils
 from db import db_helper
 from mongodb import ChatInMongoDB
 
-from .schemas import ChatSchema, CreateChatSchema
+from .schemas import ChatSchema, CreateChatSchema, GetChatMessages
 from . import utils
 from . import crud
 
@@ -30,7 +30,7 @@ async def create_chat(
 
     return {
         "status": "success",
-        "chat_id": new_chat_in_db.chat_id_in_mongodb,
+        "chat_id": new_chat_in_db.id,
     }
 
 
@@ -39,7 +39,7 @@ async def add_user_to_chat(
     user_id: int,
     session: AsyncSession = Depends(db_helper.session_dependency),
     current_user: UserInDB = Depends(auth_utils.get_current_active_auth_user),
-    chat_id_db: ChatInDB = Depends(utils.get_chat),
+    chat_id_db: ChatInDB = Depends(utils.get_chat_dependency),
 ):
     if chat_id_db.creator_id != current_user.id:
         raise HTTPException(
@@ -63,13 +63,20 @@ async def add_user_to_chat(
 @router.post("/send_message")
 async def send_message(
     message: str,
-    # session: AsyncSession = Depends(db_helper.session_dependency),
+    session: AsyncSession = Depends(db_helper.session_dependency),
     current_user: UserInDB = Depends(auth_utils.get_current_active_auth_user),
-    chat_id_db: ChatInDB = Depends(utils.get_chat),
+    chat_in_db: ChatInDB = Depends(utils.get_chat_dependency),
 ):
     chat_in_mongodb = ChatInMongoDB(
         user_id=current_user.id,
-        chat_id=chat_id_db.chat_id_in_mongodb,
+        chat_id=chat_in_db.id,
     )
-    result = chat_in_mongodb.send_message(message=message)
-    return result
+    new_message = chat_in_mongodb.send_message(message=message)
+
+    await utils.get_chat_user_association(
+        chat_id=chat_in_db.id,
+        user_id=current_user.id,
+        session=session,
+    )
+
+    return new_message

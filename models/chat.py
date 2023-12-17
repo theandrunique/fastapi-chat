@@ -18,4 +18,4 @@ class ChatInDB(Base):
     title: Mapped[str]
     creator_id: Mapped[int]
     type: Mapped[ChatType]
-    chat_id_in_mongodb: Mapped[str] = mapped_column(unique=True, index=True, default=lambda: str(uuid.uuid4()))
+    # chat_id_in_mongodb: Mapped[str] = mapped_column(unique=True, index=True, default=lambda: str(uuid.uuid4()))
