@@ -21,6 +21,28 @@ async def add_user_to_chat(
     return chat_user_association
 
 
+async def remove_user_from_chat(
+    session: AsyncSession,
+    chat_user_association: ChatUserAssociation,
+):
+    await session.delete(chat_user_association)
+    await session.commit()
+
+
+async def get_chat_user_association(
+    chat_id: int,
+    user_id: int,
+    session: AsyncSession,
+):
+    stmt = select(ChatUserAssociation).where(
+        ChatUserAssociation.chat_id == chat_id,
+        ChatUserAssociation.user_id == user_id,
+    )
+    chat_user_association = await session.execute(stmt)
+    chat_user_association = chat_user_association.one_or_none()
+    return chat_user_association[0]
+
+
 async def get_chat_by_id(
     session: AsyncSession,
     chat_id: int,
@@ -29,7 +51,7 @@ async def get_chat_by_id(
     result: Result = await session.execute(stmt)
     chat_from_db = result.one_or_none()
 
-    return chat_from_db[0]
+    return chat_from_db
 
 
 async def get_users_of_chat(

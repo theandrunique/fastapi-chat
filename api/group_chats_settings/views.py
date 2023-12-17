@@ -11,6 +11,7 @@ from models import (
     ChatInDB,
     UserInDB,
 )
+from api.group_chats import utils as chats_utils
 from api.auth import utils as auth_utils
 from db import db_helper
 from mongodb import ChatInMongoDB
@@ -24,6 +25,7 @@ from . import crud
 
 
 router = APIRouter(prefix="/chat-settings")
+
 
 @router.post("/add_user")
 async def add_user_to_chat(
@@ -51,23 +53,57 @@ async def add_user_to_chat(
     return {"status": "success"}
 
 
+@router.delete("/delete_user")
+async def remove_user_from_chat(
+    user_id: int,
+    session: AsyncSession = Depends(db_helper.session_dependency),
+    current_user: UserInDB = Depends(auth_utils.get_current_active_auth_user),
+    chat_id_db: ChatInDB = Depends(utils.get_chat_dependency),
+):
+    if chat_id_db.creator_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="you do not have access to do that",
+        )
+
+    chat_user_association = await crud.get_chat_user_association(
+        chat_id=chat_id_db.id,
+        user_id=user_id,
+        session=session,
+    )
+
+    if not chat_user_association:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="user not found"
+        )
+
+    await crud.remove_user_from_chat(
+        session=session,
+        chat_user_association=chat_user_association[0],
+    )
+
+    return {"status": "success"}
+
+
 @router.get("/get_chat_info", response_model=ChatInfoSchemaOut)
 async def get_chat_info(
-    chat_info: ChatSchema,
+    chat_in_db: ChatInDB = Depends(chats_utils.get_chat_dependency),
     session: AsyncSession = Depends(db_helper.session_dependency),
     current_user: UserInDB = Depends(auth_utils.get_current_active_auth_user),
 ):
+    await chats_utils.get_chat_user_association(
+        chat_id=chat_in_db.id,
+        user_id=current_user.id,
+        session=session,
+    )
+
     chat_in_mongodb = ChatInMongoDB(
         user_id=current_user.id,
-        chat_id=chat_info.chat_id,
+        chat_id=chat_in_db.id,
     )
     users_of_chat = await crud.get_users_of_chat(
         session=session,
-        chat_id=chat_info.chat_id,
-    )
-    chat_in_db = await crud.get_chat_by_id(
-        session=session,
-        chat_id=chat_info.chat_id,
+        chat_id=chat_in_db.id,
     )
 
     return {
