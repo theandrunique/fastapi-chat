@@ -18,7 +18,6 @@ from mongodb import ChatInMongoDB
 
 from .schemas import (
     ChatInfoSchemaOut,
-    ChatSchema,
 )
 from . import utils
 from . import crud
@@ -27,7 +26,7 @@ from . import crud
 router = APIRouter(prefix="/chat-settings")
 
 
-@router.post("/add_user")
+@router.post("/add-user")
 async def add_user_to_chat(
     user_id: int,
     session: AsyncSession = Depends(db_helper.session_dependency),
@@ -53,7 +52,7 @@ async def add_user_to_chat(
     return {"status": "success"}
 
 
-@router.delete("/delete_user")
+@router.delete("/delete-user")
 async def remove_user_from_chat(
     user_id: int,
     session: AsyncSession = Depends(db_helper.session_dependency),
@@ -85,7 +84,7 @@ async def remove_user_from_chat(
     return {"status": "success"}
 
 
-@router.get("/get_chat_info", response_model=ChatInfoSchemaOut)
+@router.get("/get-chat-info", response_model=ChatInfoSchemaOut)
 async def get_chat_info(
     chat_in_db: ChatInDB = Depends(chats_utils.get_chat_dependency),
     session: AsyncSession = Depends(db_helper.session_dependency),

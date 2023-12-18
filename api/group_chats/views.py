@@ -21,7 +21,7 @@ from . import crud
 router = APIRouter(prefix="/chat")
 
 
-@router.post("/create_chat")
+@router.post("/create-chat")
 async def create_chat(
     chat_conf: CreateChatSchema,
     current_user: UserInDB = Depends(auth_utils.get_current_active_auth_user),
@@ -39,7 +39,7 @@ async def create_chat(
     }
 
 
-@router.post("/send_message")
+@router.post("/send-message")
 async def send_message(
     message: str,
     session: AsyncSession = Depends(db_helper.session_dependency),
@@ -61,7 +61,7 @@ async def send_message(
     return new_message
 
 
-@router.get("/get_chat_messages")
+@router.get("/get-chat-messages")
 async def get_chat_messages(
     query_info: GetChatMessages,
     session: AsyncSession = Depends(db_helper.session_dependency),
