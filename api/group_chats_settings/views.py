@@ -29,11 +29,11 @@ router = APIRouter(prefix="/chat-settings")
 @router.post("/add-user")
 async def add_user_to_chat(
     user_id: int,
-    session: AsyncSession = Depends(db_helper.session_dependency),
     current_user: UserInDB = Depends(auth_utils.get_current_active_auth_user),
-    chat_id_db: ChatInDB = Depends(utils.get_chat_dependency),
+    session: AsyncSession = Depends(db_helper.session_dependency),
+    chat_in_db: ChatInDB = Depends(utils.get_chat_dependency),
 ):
-    if chat_id_db.creator_id != current_user.id:
+    if chat_in_db.creator_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="you do not have access to do that",
@@ -41,7 +41,7 @@ async def add_user_to_chat(
     try:
         await crud.add_user_to_chat(
             session=session,
-            chat_id=chat_id_db.id,
+            chat_id=chat_in_db.id,
             user_id=user_id,
         )
     except IntegrityError:
@@ -55,18 +55,18 @@ async def add_user_to_chat(
 @router.delete("/delete-user")
 async def remove_user_from_chat(
     user_id: int,
-    session: AsyncSession = Depends(db_helper.session_dependency),
     current_user: UserInDB = Depends(auth_utils.get_current_active_auth_user),
-    chat_id_db: ChatInDB = Depends(utils.get_chat_dependency),
+    session: AsyncSession = Depends(db_helper.session_dependency),
+    chat_in_db: ChatInDB = Depends(utils.get_chat_dependency),
 ):
-    if chat_id_db.creator_id != current_user.id:
+    if chat_in_db.creator_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="you do not have access to do that",
         )
 
     chat_user_association = await crud.get_chat_user_association(
-        chat_id=chat_id_db.id,
+        chat_id=chat_in_db.id,
         user_id=user_id,
         session=session,
     )
@@ -86,9 +86,9 @@ async def remove_user_from_chat(
 
 @router.get("/get-chat-info", response_model=ChatInfoSchemaOut)
 async def get_chat_info(
+    current_user: UserInDB = Depends(auth_utils.get_current_active_auth_user),
     chat_in_db: ChatInDB = Depends(chats_utils.get_chat_dependency),
     session: AsyncSession = Depends(db_helper.session_dependency),
-    current_user: UserInDB = Depends(auth_utils.get_current_active_auth_user),
 ):
     await chats_utils.get_chat_user_association(
         chat_id=chat_in_db.id,
@@ -107,6 +107,45 @@ async def get_chat_info(
 
     return {
         "total_messages": chat_in_mongodb.get_count_chat_messages(),
-        "chat_participants": users_of_chat,
+        "chat_members": users_of_chat,
         "chat_info": chat_in_db,
     }
+
+
+@router.patch("/update-chat-title")
+async def update_chat_title(
+    new_title: str,
+    current_user: UserInDB = Depends(auth_utils.get_current_active_auth_user),
+    chat_in_db: ChatInDB = Depends(chats_utils.get_chat_dependency),
+    session: AsyncSession = Depends(db_helper.session_dependency),
+):
+    if chat_in_db.creator_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="you do not have access to do that",
+        )
+
+    await crud.change_chat_title(
+        session=session,
+        chat=chat_in_db,
+        new_title=new_title,
+    )
+
+    return {"status": "success"}
+
+
+@router.delete("/delete-chat")
+async def delete_chat(
+    current_user: UserInDB = Depends(auth_utils.get_current_active_auth_user),
+    chat_in_db: ChatInDB = Depends(chats_utils.get_chat_dependency),
+    session: AsyncSession = Depends(db_helper.session_dependency),
+):
+    if chat_in_db.creator_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="you do not have access to do that",
+        )
+
+    await crud.delete_chat(session=session, chat=chat_in_db)
+
+    return {"status": "success"}

@@ -15,5 +15,6 @@ class ChatInfoSchema(BaseModel):
 
 
 class ChatInfoSchemaOut(BaseModel):
-    chat_participants: list[UserRegSchemaOut] = []
+    chat_members: list[UserRegSchemaOut] = []
     chat_info: ChatInfoSchema
+    total_messages: int

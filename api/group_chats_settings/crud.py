@@ -56,7 +56,7 @@ async def get_chat_by_id(
 
 async def get_users_of_chat(
     session: AsyncSession,
-    chat_id,
+    chat_id: int,
 ) -> list[UserInDB]:
     stmt = (
         select(ChatUserAssociation, UserInDB)
@@ -67,3 +67,21 @@ async def get_users_of_chat(
     result: Result = await session.execute(stmt)
 
     return [user for _, user in result]
+
+
+async def change_chat_title(
+    session: AsyncSession,
+    chat: ChatInDB,
+    new_title: int,
+):
+    chat.title = new_title
+    session.add(chat)
+    await session.commit()
+
+
+async def delete_chat(
+    session: AsyncSession,
+    chat: ChatInDB,
+):
+    await session.delete(chat)
+    await session.commit()
