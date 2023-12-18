@@ -8,5 +8,5 @@ class ChatUserAssociation(Base):
     __table_args__ = (UniqueConstraint("chat_id", "user_id"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    chat_id: Mapped[int] = mapped_column(ForeignKey("chats.id"))
+    chat_id: Mapped[int] = mapped_column(ForeignKey("chats.id", ondelete="cascade"))
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))

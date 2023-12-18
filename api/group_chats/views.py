@@ -18,6 +18,7 @@ from .schemas import (
 )
 from . import utils
 from . import crud
+
 router = APIRouter(prefix="/chat")
 
 
@@ -51,7 +52,7 @@ async def send_message(
         user_id=current_user.id,
         session=session,
     )
-    
+
     chat_in_mongodb = ChatInMongoDB(
         user_id=current_user.id,
         chat_id=chat_in_db.id,
@@ -86,3 +87,15 @@ async def get_chat_messages(
         "chat_id": query_info.chat_id,
         "messages": messages,
     }
+
+
+@router.get("/get-my-chats")
+async def get_my_chats(
+    session: AsyncSession = Depends(db_helper.session_dependency),
+    current_user: UserInDB = Depends(auth_utils.get_current_active_auth_user),
+):
+    ...
+    return await crud.get_my_chats(
+        session=session,
+        user_id=current_user.id,
+    )
