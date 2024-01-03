@@ -4,7 +4,7 @@ import time
 import pymongo
 
 from core.config import settings
-
+from .utils import del_id 
 
 class ChatInMongoDB:
     def __init__(
@@ -54,10 +54,7 @@ class ChatInMongoDB:
             .limit(count)
             .skip(offset)
         )
-        messages = []
 
-        for document in cursor:
-            document.pop("_id", None)
-            messages.append(document)
+        messages = list(map(del_id, cursor))
 
         return messages
