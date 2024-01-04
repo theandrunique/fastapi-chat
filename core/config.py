@@ -24,9 +24,13 @@ class Settings(BaseSettings):
         else:
             return False
 
+    MONGODB_NAME: str
+    MONGODB_HOST: str
+    MONGODB_PORT: str
+
     @property
     def MONGODB_URI(self):
-        return "mongodb://localhost:27017"
+        return f"mongodb://{self.MONGODB_HOST}:{self.MONGODB_PORT}"
 
     model_config = SettingsConfigDict(env_file=".env")
 

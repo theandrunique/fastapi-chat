@@ -1,4 +1,3 @@
-from functools import wraps
 import time
 
 import pymongo
@@ -10,12 +9,12 @@ class ChatInMongoDB:
     def __init__(
         self,
         user_id: int,
-        chat_id: int,
+        chat_id: str,
     ) -> None:
         """initialize connection to mongodb, create new chat collection if needed"""
 
         self.client = pymongo.MongoClient(settings.MONGODB_URI)
-        self.db = self.client["chats"]
+        self.db = self.client[settings.MONGODB_NAME]
         self.collection = self.db[str(chat_id)]
 
         self.user_id = user_id
